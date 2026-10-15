@@ -12,6 +12,8 @@ public class AuthResponse {
     private String lastName;
     private UserRole role;
     private String message;
+    private String accessToken;
+    private String refreshToken;
 
     public AuthResponse() {
     }
@@ -23,5 +25,16 @@ public class AuthResponse {
         this.lastName = lastName;
         this.role = role;
         this.message = message;
+    }
+
+    public AuthResponse(Long id, String email, String firstName, String lastName, UserRole role, String message, String accessToken, String refreshToken) {
+        this.id = id;
+        this.email = email;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.role = role;
+        this.message = message;
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
     }
 }
