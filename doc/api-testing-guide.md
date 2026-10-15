@@ -1,5 +1,22 @@
 # API Testing Guide
 
+## Environment variables
+
+This project loads variables from a `.env` file in the project root using Spring Boot's native config import.
+
+1. Copy `.env.example` to `.env`:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Fill in your real database credentials and JWT secret.
+3. Restart the application.
+
+The `.env` file is ignored by Git, so your secrets stay local.
+
+---
+
 ## Authentication
 
 This backend uses **JWT Bearer tokens**. Most endpoints require an `Authorization` header.
