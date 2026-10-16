@@ -65,7 +65,6 @@ public class AdminCategoryService {
         category.setDescription(request.getDescription());
 
         Category updatedCategory = categoryRepository.save(category);
-        productRepository.updateCategoryName(id, updatedCategory.getName());
         return mapToResponse(updatedCategory);
     }
 
