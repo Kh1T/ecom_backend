@@ -9,34 +9,32 @@ CREATE TABLE IF NOT EXISTS categories (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
+-- Hibernate may already have created this table without timestamp defaults.
+-- Ensure direct SQL inserts receive valid timestamps as well.
+ALTER TABLE categories
+    ALTER COLUMN created_at SET DEFAULT CURRENT_TIMESTAMP,
+    ALTER COLUMN updated_at SET DEFAULT CURRENT_TIMESTAMP;
+
 ALTER TABLE products
     ADD COLUMN IF NOT EXISTS category_id BIGINT;
 
--- Add the foreign key only when it does not already exist (for example, if V3
--- has already created it).
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1
-        FROM pg_constraint
-        WHERE conname = 'fk_products_category'
-          AND conrelid = 'products'::regclass
-    ) THEN
-        ALTER TABLE products
-            ADD CONSTRAINT fk_products_category
-            FOREIGN KEY (category_id)
-            REFERENCES categories(id)
-            ON DELETE SET NULL;
-    END IF;
-END
-$$;
+-- Recreate the constraint because V3 may already have added it without an
+-- ON DELETE action. Deleting a category will safely unassign its products.
+ALTER TABLE products
+    DROP CONSTRAINT IF EXISTS fk_products_category;
+
+ALTER TABLE products
+    ADD CONSTRAINT fk_products_category
+    FOREIGN KEY (category_id)
+    REFERENCES categories(id)
+    ON DELETE SET NULL;
 
 CREATE INDEX IF NOT EXISTS idx_products_category_id
     ON products(category_id);
 
 -- Preserve and normalize category data stored previously in products.category.
-INSERT INTO categories (name)
-SELECT DISTINCT BTRIM(p.category)
+INSERT INTO categories (name, created_at, updated_at)
+SELECT DISTINCT BTRIM(p.category), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM products p
 WHERE NULLIF(BTRIM(p.category), '') IS NOT NULL
   AND NOT EXISTS (
