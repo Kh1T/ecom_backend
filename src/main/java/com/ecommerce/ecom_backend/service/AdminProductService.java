@@ -90,12 +90,8 @@ public class AdminProductService {
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
-
-        if (product.getStatus() == ProductStatus.ACTIVE) {
-            throw new RuntimeException("Cannot delete an active product. Archive it first.");
-        }
-
-        productRepository.delete(product);
+        product.setStatus(ProductStatus.DELETED);
+        productRepository.save(product);
     }
 
     @Transactional
@@ -180,7 +176,8 @@ public class AdminProductService {
             Category category = categoryRepository.findById(categoryId)
                     .orElseThrow(() -> new RuntimeException("Category not found"));
             product.setCategoryEntity(category);
-            product.setCategory(category.getName());
+        } else {
+            product.setCategoryEntity(null);
         }
 
         if (brandId != null) {
@@ -226,7 +223,7 @@ public class AdminProductService {
                 product.getSku(),
                 product.getStatus(),
                 product.getCategoryEntity() != null ? product.getCategoryEntity().getId() : null,
-                product.getCategoryEntity() != null ? product.getCategoryEntity().getName() : product.getCategory(),
+                product.getCategoryEntity() != null ? product.getCategoryEntity().getName() : null,
                 product.getBrand() != null ? product.getBrand().getId() : null,
                 product.getBrand() != null ? product.getBrand().getName() : null,
                 product.getCreatedAt(),
