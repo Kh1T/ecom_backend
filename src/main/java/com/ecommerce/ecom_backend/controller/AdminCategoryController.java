@@ -24,7 +24,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/admin/categories")
-@Tag(name = "Admin Categories", description = "Create, read, update and delete product categories")
+@Tag(name = "Admin Category API", description = "Create, read, update and delete product categories")
 @SecurityRequirement(name = "bearerAuth")
 public class AdminCategoryController {
 
