@@ -2,20 +2,22 @@ spring:
   application:
     name: ecom_backend
 
-  # Oracle datasource configuration
-  # Update the URL, username, and password to match your Oracle instance.
-  # Common local Oracle XE URLs:
-  #   Oracle 21c XE: jdbc:oracle:thin:@//localhost:1521/XEPDB1
-  #   Oracle 11g/18c XE: jdbc:oracle:thin:@//localhost:1521/XE
+  config:
+    import: optional:file:.env[.properties]
+
+  # Supabase (PostgreSQL) datasource configuration
+  # Replace the URL, username, and password with your Supabase project credentials.
+  # Find the JDBC connection string under Project Settings -> Database -> Connection string -> JDBC.
   datasource:
-    url: jdbc:oracle:thin:@//localhost:1521/FREEPDB1
-    username: ecom
-    password: "123"
-    driver-class-name: oracle.jdbc.OracleDriver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: ${DB_DRIVER:org.postgresql.Driver}
 
     # HikariCP connection pool settings
+    # Supabase free tier has a low connection limit, so keep the pool small.
     hikari:
-      maximum-pool-size: 10
+      maximum-pool-size: 5
       minimum-idle: 2
       connection-timeout: 30000
       idle-timeout: 600000
@@ -29,7 +31,7 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.OracleDialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     show-sql: true
 
@@ -48,6 +50,6 @@ spring:
 # JWT configuration
 # Change this secret in production. It must be at least 256 bits (32 bytes) for HS256.
 jwt:
-  secret: my-very-secret-key-that-should-be-replaced-in-production!!!
-  access-token-expiration: 86400000
-  refresh-token-expiration: 604800000
+  secret: ${JWT_SECRET}
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION:86400000}
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
