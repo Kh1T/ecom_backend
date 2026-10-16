@@ -1,15 +1,4 @@
 package com.ecommerce.ecom_backend.dto;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-public class MessageResponse {
-
-    private String message;
-
-    public MessageResponse(String message) {
-        this.message = message;
-    }
+public record MessageResponse(String message) {
 }

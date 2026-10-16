@@ -1,5 +1,6 @@
 package com.ecommerce.ecom_backend.entity;
 
+import com.ecommerce.ecom_backend.enums.ProductStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -7,6 +8,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "products")
@@ -36,6 +39,24 @@ public class Product {
     @Column(length = 100)
     private String category;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 50)
+    private ProductStatus status = ProductStatus.ACTIVE;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category categoryEntity;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id")
+    private Brand brand;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductImage> images = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductVariant> variants = new ArrayList<>();
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -47,7 +68,7 @@ public class Product {
     public Product() {
     }
 
-    public Product(Long id, String name, String description, BigDecimal price, Integer stockQuantity, String sku, String category, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Product(Long id, String name, String description, BigDecimal price, Integer stockQuantity, String sku, String category, ProductStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -55,6 +76,7 @@ public class Product {
         this.stockQuantity = stockQuantity;
         this.sku = sku;
         this.category = category;
+        this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
