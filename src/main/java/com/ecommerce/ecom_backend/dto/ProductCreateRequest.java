@@ -25,5 +25,5 @@ public class ProductCreateRequest {
 
     private String sku;
 
-    private String category;
+    private Long categoryId;
 }
