@@ -2,6 +2,7 @@ package com.ecommerce.ecom_backend.controller;
 
 import com.ecommerce.ecom_backend.dto.*;
 import com.ecommerce.ecom_backend.service.AdminProductService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/admin/products")
+@Tag(name = "Admin Product API", description = "Manage products, images, variants and status")
 public class AdminProductController {
 
     private final AdminProductService adminProductService;
