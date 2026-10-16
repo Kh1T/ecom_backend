@@ -10,7 +10,7 @@ This project loads variables from a `.env` file in the project root using Spring
    cp .env.example .env
    ```
 
-2. Fill in your real database credentials and JWT secret.
+2. Fill in your real database credentials, JWT secret, and Cloudinary credentials.
 3. Restart the application.
 
 The `.env` file is ignored by Git, so your secrets stay local.
@@ -129,6 +129,19 @@ DELETE /api/v1/admin/products/{id}/images/{imageId}
 POST /api/v1/admin/products/{id}/variants
 PATCH /api/v1/admin/products/{id}/variants/{variantId}
 ```
+
+Example upload image (admin token required):
+
+```http
+POST /api/v1/admin/products/1/images
+Content-Type: multipart/form-data
+Authorization: Bearer <admin_access_token>
+
+file: <select image file>
+sortOrder: 0
+```
+
+Images are uploaded to **Cloudinary** and the returned `secure_url` is stored in the database.
 
 Example create product:
 

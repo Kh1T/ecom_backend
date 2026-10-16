@@ -3,6 +3,7 @@ package com.ecommerce.ecom_backend.controller;
 import com.ecommerce.ecom_backend.dto.*;
 import com.ecommerce.ecom_backend.service.AdminProductService;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/admin/products")
@@ -55,11 +58,12 @@ public class AdminProductController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/{id}/images")
+    @PostMapping(value = "/{id}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ProductImageResponse> addProductImage(
             @PathVariable Long id,
-            @Valid @RequestBody ProductImageRequest request) {
-        return ResponseEntity.ok(adminProductService.addProductImage(id, request));
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "sortOrder", defaultValue = "0") Integer sortOrder) {
+        return ResponseEntity.ok(adminProductService.addProductImage(id, file, sortOrder));
     }
 
     @DeleteMapping("/{id}/images/{imageId}")

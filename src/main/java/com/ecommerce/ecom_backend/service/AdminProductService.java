@@ -6,6 +6,7 @@ import com.ecommerce.ecom_backend.enums.ProductStatus;
 import com.ecommerce.ecom_backend.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,17 +19,20 @@ public class AdminProductService {
     private final BrandRepository brandRepository;
     private final ProductImageRepository productImageRepository;
     private final ProductVariantRepository productVariantRepository;
+    private final CloudinaryService cloudinaryService;
 
     public AdminProductService(ProductRepository productRepository,
                                CategoryRepository categoryRepository,
                                BrandRepository brandRepository,
                                ProductImageRepository productImageRepository,
-                               ProductVariantRepository productVariantRepository) {
+                               ProductVariantRepository productVariantRepository,
+                               CloudinaryService cloudinaryService) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.brandRepository = brandRepository;
         this.productImageRepository = productImageRepository;
         this.productVariantRepository = productVariantRepository;
+        this.cloudinaryService = cloudinaryService;
     }
 
     @Transactional
@@ -95,14 +99,16 @@ public class AdminProductService {
     }
 
     @Transactional
-    public ProductImageResponse addProductImage(Long productId, ProductImageRequest request) {
+    public ProductImageResponse addProductImage(Long productId, MultipartFile file, Integer sortOrder) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
+        String imageUrl = cloudinaryService.uploadImage(file, "products/" + productId);
+
         ProductImage image = new ProductImage();
         image.setProduct(product);
-        image.setImageUrl(request.getImageUrl());
-        image.setSortOrder(request.getSortOrder());
+        image.setImageUrl(imageUrl);
+        image.setSortOrder(sortOrder);
 
         ProductImage savedImage = productImageRepository.save(image);
         return mapToProductImageResponse(savedImage);
