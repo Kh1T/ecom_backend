@@ -10,7 +10,7 @@ This project loads variables from a `.env` file in the project root using Spring
    cp .env.example .env
    ```
 
-2. Fill in your real database credentials and JWT secret.
+2. Fill in your real database credentials, JWT secret, and Cloudinary credentials.
 3. Restart the application.
 
 The `.env` file is ignored by Git, so your secrets stay local.
@@ -32,13 +32,21 @@ This backend uses **JWT Bearer tokens**. Most endpoints require an `Authorizatio
 
 ### Protected endpoints
 
-All other endpoints, including the customer order APIs, require:
+All non-public endpoints require:
 
 ```http
 Authorization: Bearer <access_token>
 ```
 
 The token type must be `ACCESS`. Refresh tokens will be rejected.
+
+Role requirements:
+
+| Endpoint prefix | Required role |
+|-----------------|---------------|
+| `/api/v1/products/**` (write) | `ADMIN` |
+| `/api/v1/orders/**` | `CUSTOMER` or `ADMIN` |
+| `/api/v1/admin/**` | `ADMIN` or `CATALOG_MANAGER` |
 
 ---
 
@@ -83,9 +91,106 @@ Example response:
 
 ---
 
+## Product APIs
+
+### Public (no token needed)
+
+```http
+GET /api/v1/products?page=0&size=10&sort=id,asc
+GET /api/v1/products/{id}
+GET /api/v1/products/search?q=phone
+```
+
+## Admin APIs
+
+All `/api/v1/admin/**` endpoints require `ADMIN` or `CATALOG_MANAGER` role.
+
+Use the seeded admin user to get a token:
+
+```http
+POST /api/auth/sign-in
+Content-Type: application/json
+
+{
+  "email": "admin@example.com",
+  "password": "admin123"
+}
+```
+
+### Products
+
+```http
+POST /api/v1/admin/products
+PUT /api/v1/admin/products/{id}
+PATCH /api/v1/admin/products/{id}/status
+DELETE /api/v1/admin/products/{id}
+POST /api/v1/admin/products/{id}/images
+DELETE /api/v1/admin/products/{id}/images/{imageId}
+POST /api/v1/admin/products/{id}/variants
+PATCH /api/v1/admin/products/{id}/variants/{variantId}
+```
+
+Example upload image (admin token required):
+
+```http
+POST /api/v1/admin/products/1/images
+Content-Type: multipart/form-data
+Authorization: Bearer <admin_access_token>
+
+file: <select image file>
+sortOrder: 0
+```
+
+Images are uploaded to **Cloudinary** and the returned `secure_url` is stored in the database.
+
+Example create product:
+
+```http
+POST /api/v1/admin/products
+Content-Type: application/json
+Authorization: Bearer <admin_access_token>
+
+{
+  "name": "Gaming Headset",
+  "description": "Wireless gaming headset with noise cancelling mic",
+  "price": 79.99,
+  "stockQuantity": 40,
+  "sku": "ELEC-005",
+  "categoryId": 1,
+  "brandId": 1
+}
+```
+
+Example status update:
+
+```http
+PATCH /api/v1/admin/products/1/status
+Content-Type: application/json
+Authorization: Bearer <admin_access_token>
+
+{
+  "status": "ARCHIVED"
+}
+```
+
+### Categories
+
+```http
+POST /api/v1/admin/categories
+PUT /api/v1/admin/categories/{id}
+```
+
+### Brands
+
+```http
+POST /api/v1/admin/brands
+```
+
+---
+
 ## Customer Order APIs
 
-All order endpoints are under `/api/v1/orders` and require the Bearer token of the logged-in customer.
+All order endpoints are under `/api/v1/orders` and require a Bearer token with the **`CUSTOMER`** role (ADMIN also allowed).
 
 ### Create an order
 
@@ -156,10 +261,10 @@ Allowed for orders with status `PENDING` or `SHIPPED`.
 
 | HTTP | Cause |
 |------|-------|
-| `403 Forbidden` | Missing `Authorization` header, wrong token format, expired token, or using a refresh token instead of access token. |
+| `403 Forbidden` | Missing `Authorization` header, wrong token format, expired token, using a refresh token instead of access token, or role not allowed for the endpoint. |
 | `400 Bad Request` | Validation failed (e.g., empty items, quantity < 1). |
-| `404 Not Found` | Order does not belong to the customer or does not exist. |
-| `409` / runtime error | Insufficient stock, order already shipped/cancelled, etc. |
+| `404 Not Found` | Resource does not exist or does not belong to the user. |
+| `409` / runtime error | Insufficient stock, order already shipped/cancelled, SKU already exists, etc. |
 
 ---
 

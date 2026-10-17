@@ -1,8 +1,10 @@
 package com.ecommerce.ecom_backend.config;
 
+import com.ecommerce.ecom_backend.entity.Category;
 import com.ecommerce.ecom_backend.entity.Product;
 import com.ecommerce.ecom_backend.entity.User;
 import com.ecommerce.ecom_backend.enums.UserRole;
+import com.ecommerce.ecom_backend.repository.CategoryRepository;
 import com.ecommerce.ecom_backend.repository.ProductRepository;
 import com.ecommerce.ecom_backend.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -16,7 +18,10 @@ import java.math.BigDecimal;
 public class DataSeeder {
 
     @Bean
-    CommandLineRunner seedData(UserRepository userRepository, ProductRepository productRepository, PasswordEncoder passwordEncoder) {
+    CommandLineRunner seedData(UserRepository userRepository,
+                               ProductRepository productRepository,
+                               CategoryRepository categoryRepository,
+                               PasswordEncoder passwordEncoder) {
         return args -> {
             if (userRepository.findByEmail("admin@example.com").isEmpty()) {
                 User admin = new User();
@@ -48,6 +53,12 @@ public class DataSeeder {
                 userRepository.save(jane);
             }
 
+            Category electronics = findOrCreateCategory(categoryRepository, "Electronics");
+            Category accessories = findOrCreateCategory(categoryRepository, "Accessories");
+            Category home = findOrCreateCategory(categoryRepository, "Home");
+            Category fashion = findOrCreateCategory(categoryRepository, "Fashion");
+            Category stationery = findOrCreateCategory(categoryRepository, "Stationery");
+
             if (productRepository.findBySku("ELEC-001").isEmpty()) {
                 Product mouse = new Product();
                 mouse.setName("Wireless Mouse");
@@ -55,7 +66,7 @@ public class DataSeeder {
                 mouse.setPrice(new BigDecimal("29.99"));
                 mouse.setStockQuantity(100);
                 mouse.setSku("ELEC-001");
-                mouse.setCategory("Electronics");
+                mouse.setCategoryEntity(electronics);
                 productRepository.save(mouse);
             }
 
@@ -66,7 +77,7 @@ public class DataSeeder {
                 keyboard.setPrice(new BigDecimal("89.99"));
                 keyboard.setStockQuantity(50);
                 keyboard.setSku("ELEC-002");
-                keyboard.setCategory("Electronics");
+                keyboard.setCategoryEntity(electronics);
                 productRepository.save(keyboard);
             }
 
@@ -77,7 +88,7 @@ public class DataSeeder {
                 cable.setPrice(new BigDecimal("12.99"));
                 cable.setStockQuantity(200);
                 cable.setSku("ELEC-003");
-                cable.setCategory("Accessories");
+                cable.setCategoryEntity(accessories);
                 productRepository.save(cable);
             }
 
@@ -88,7 +99,7 @@ public class DataSeeder {
                 monitor.setPrice(new BigDecimal("349.99"));
                 monitor.setStockQuantity(25);
                 monitor.setSku("ELEC-004");
-                monitor.setCategory("Electronics");
+                monitor.setCategoryEntity(electronics);
                 productRepository.save(monitor);
             }
 
@@ -99,7 +110,7 @@ public class DataSeeder {
                 mug.setPrice(new BigDecimal("9.99"));
                 mug.setStockQuantity(150);
                 mug.setSku("HOME-001");
-                mug.setCategory("Home");
+                mug.setCategoryEntity(home);
                 productRepository.save(mug);
             }
 
@@ -110,7 +121,7 @@ public class DataSeeder {
                 lamp.setPrice(new BigDecimal("45.50"));
                 lamp.setStockQuantity(60);
                 lamp.setSku("HOME-002");
-                lamp.setCategory("Home");
+                lamp.setCategoryEntity(home);
                 productRepository.save(lamp);
             }
 
@@ -121,7 +132,7 @@ public class DataSeeder {
                 backpack.setPrice(new BigDecimal("59.99"));
                 backpack.setStockQuantity(80);
                 backpack.setSku("FASH-001");
-                backpack.setCategory("Fashion");
+                backpack.setCategoryEntity(fashion);
                 productRepository.save(backpack);
             }
 
@@ -132,7 +143,7 @@ public class DataSeeder {
                 tshirt.setPrice(new BigDecimal("19.99"));
                 tshirt.setStockQuantity(120);
                 tshirt.setSku("FASH-002");
-                tshirt.setCategory("Fashion");
+                tshirt.setCategoryEntity(fashion);
                 productRepository.save(tshirt);
             }
 
@@ -143,9 +154,17 @@ public class DataSeeder {
                 notebook.setPrice(new BigDecimal("14.99"));
                 notebook.setStockQuantity(200);
                 notebook.setSku("BOOK-001");
-                notebook.setCategory("Stationery");
+                notebook.setCategoryEntity(stationery);
                 productRepository.save(notebook);
             }
         };
+    }
+
+    private Category findOrCreateCategory(CategoryRepository categoryRepository, String name) {
+        return categoryRepository.findByName(name).orElseGet(() -> {
+            Category category = new Category();
+            category.setName(name);
+            return categoryRepository.save(category);
+        });
     }
 }

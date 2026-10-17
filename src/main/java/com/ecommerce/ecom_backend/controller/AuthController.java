@@ -9,6 +9,7 @@ import com.ecommerce.ecom_backend.dto.SignInRequest;
 import com.ecommerce.ecom_backend.dto.SignUpRequest;
 import com.ecommerce.ecom_backend.dto.UserProfileResponse;
 import com.ecommerce.ecom_backend.service.AuthService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Auth API", description = "Authentication, tokens and user profile")
 public class AuthController {
 
     private final AuthService authService;

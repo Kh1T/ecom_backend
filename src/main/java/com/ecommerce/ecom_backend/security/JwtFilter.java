@@ -26,6 +26,12 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
+    protected boolean shouldNotFilter(@Nonnull HttpServletRequest request) {
+        return "GET".equalsIgnoreCase(request.getMethod())
+                && request.getServletPath().startsWith("/api/v1/products");
+    }
+
+    @Override
     protected void doFilterInternal(@Nonnull HttpServletRequest request,
                                     @Nonnull HttpServletResponse response,
                                     @Nonnull FilterChain filterChain) throws ServletException, IOException {

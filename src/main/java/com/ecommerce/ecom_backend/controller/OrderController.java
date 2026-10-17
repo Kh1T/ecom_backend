@@ -5,6 +5,7 @@ import com.ecommerce.ecom_backend.dto.MessageResponse;
 import com.ecommerce.ecom_backend.dto.OrderResponse;
 import com.ecommerce.ecom_backend.dto.ShipmentResponse;
 import com.ecommerce.ecom_backend.service.OrderService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/orders")
+@Tag(name = "Order API", description = "Create, view and track customer orders")
 public class OrderController {
 
     private final OrderService orderService;
