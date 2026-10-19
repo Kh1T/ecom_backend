@@ -1,6 +1,7 @@
 package com.ecommerce.ecom_backend.entity;
 
 import com.ecommerce.ecom_backend.enums.ProductStatus;
+import com.ecommerce.ecom_backend.enums.ProductStatusConverter;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -39,8 +40,8 @@ public class Product {
     @Column(length = 100)
     private String category;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", length = 50)
+    @Convert(converter = ProductStatusConverter.class)
+    @Column(name = "status")
     private ProductStatus status = ProductStatus.ACTIVE;
 
     @ManyToOne(fetch = FetchType.LAZY)
