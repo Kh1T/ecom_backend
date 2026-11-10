@@ -4,6 +4,7 @@ import com.ecommerce.ecom_backend.dto.ProductCreateRequest;
 import com.ecommerce.ecom_backend.dto.ProductResponse;
 import com.ecommerce.ecom_backend.entity.Category;
 import com.ecommerce.ecom_backend.entity.Product;
+import com.ecommerce.ecom_backend.entity.ProductImage;
 import com.ecommerce.ecom_backend.enums.ProductStatus;
 import com.ecommerce.ecom_backend.repository.CategoryRepository;
 import com.ecommerce.ecom_backend.repository.ProductRepository;
@@ -11,6 +12,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -96,6 +101,12 @@ public class ProductService {
     }
 
     private ProductResponse mapToResponse(Product product) {
+        List<String> imageUrls = product.getImages() == null
+                ? Collections.emptyList()
+                : product.getImages().stream()
+                        .map(ProductImage::getImageUrl)
+                        .collect(Collectors.toList());
+
         return new ProductResponse(
                 product.getId(),
                 product.getName(),
@@ -106,6 +117,7 @@ public class ProductService {
                 product.getStatus(),
                 product.getCategoryEntity() != null ? product.getCategoryEntity().getId() : null,
                 product.getCategoryEntity() != null ? product.getCategoryEntity().getName() : null,
+                imageUrls,
                 product.getCreatedAt(),
                 product.getUpdatedAt()
         );

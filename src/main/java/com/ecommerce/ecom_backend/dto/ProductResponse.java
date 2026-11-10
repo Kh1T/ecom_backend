@@ -4,6 +4,7 @@ import com.ecommerce.ecom_backend.enums.ProductStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record ProductResponse(
         Long id,
@@ -15,6 +16,8 @@ public record ProductResponse(
         ProductStatus status,
         Long categoryId,
         String categoryName,
+        String category,
+        List<String> imageUrls,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

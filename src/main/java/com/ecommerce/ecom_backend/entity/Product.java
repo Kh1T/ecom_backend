@@ -37,8 +37,11 @@ public class Product {
     @Column(length = 100, unique = true)
     private String sku;
 
-    @Convert(converter = ProductStatusConverter.class)
-    @Column(name = "status", nullable = false)
+    @Column(length = 100)
+    private String category;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", length = 50)
     private ProductStatus status = ProductStatus.ACTIVE;
 
     @ManyToOne(fetch = FetchType.LAZY)

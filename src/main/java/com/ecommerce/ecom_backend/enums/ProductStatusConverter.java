@@ -4,15 +4,15 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 @Converter(autoApply = true)
-public class ProductStatusConverter implements AttributeConverter<ProductStatus, Short> {
+public class ProductStatusConverter implements AttributeConverter<ProductStatus, Integer> {
 
     @Override
-    public Short convertToDatabaseColumn(ProductStatus status) {
-        return status == null ? null : (short) status.getCode();
+    public Integer convertToDatabaseColumn(ProductStatus status) {
+        return status == null ? null : status.getValue();
     }
 
     @Override
-    public ProductStatus convertToEntityAttribute(Short code) {
-        return code == null ? null : ProductStatus.fromCode(code.intValue());
+    public ProductStatus convertToEntityAttribute(Integer value) {
+        return value == null ? null : ProductStatus.fromValue(value);
     }
 }

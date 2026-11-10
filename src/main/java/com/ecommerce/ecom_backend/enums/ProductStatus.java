@@ -7,27 +7,25 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @Schema(type = "integer", allowableValues = {"1", "2"},
         description = "Product status: 1 = ACTIVE, 2 = DELETED")
 public enum ProductStatus {
-    ACTIVE(1),
-    DELETED(2);
+    ACTIVE(0),
+    ARCHIVED(1);
 
-    private final int code;
+    private final int value;
 
-    ProductStatus(int code) {
-        this.code = code;
+    ProductStatus(int value) {
+        this.value = value;
     }
 
-    @JsonValue
-    public int getCode() {
-        return code;
+    public int getValue() {
+        return value;
     }
 
-    @JsonCreator
-    public static ProductStatus fromCode(int code) {
+    public static ProductStatus fromValue(int value) {
         for (ProductStatus status : values()) {
-            if (status.code == code) {
+            if (status.value == value) {
                 return status;
             }
         }
-        throw new IllegalArgumentException("Product status must be 1 (ACTIVE) or 2 (DELETED)");
+        throw new IllegalArgumentException("Unknown ProductStatus value: " + value);
     }
 }
