@@ -40,8 +40,8 @@ public class Product {
     @Column(length = 100)
     private String category;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", length = 50)
+    @Convert(converter = ProductStatusConverter.class)
+    @Column(name = "status")
     private ProductStatus status = ProductStatus.ACTIVE;
 
     @ManyToOne(fetch = FetchType.LAZY)
