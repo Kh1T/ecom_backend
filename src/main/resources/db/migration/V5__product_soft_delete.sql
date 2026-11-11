@@ -1,5 +1,5 @@
 -- Store product lifecycle as numeric codes:
--- 1 = ACTIVE, 2 = DELETED (soft deleted).
+-- 0 = ACTIVE, 1 = DELETED (soft deleted).
 
 -- Remove old enum/check constraints before changing the column type.
 DO $$
@@ -28,23 +28,23 @@ ALTER TABLE products
     ALTER COLUMN status TYPE SMALLINT
     USING (
         CASE
-            WHEN status::TEXT IN ('ACTIVE', '1') THEN 1
-            ELSE 2
+            WHEN status::TEXT IN ('ACTIVE', '0') THEN 0
+            ELSE 1
         END
     );
 
 UPDATE products
-SET status = 1
+SET status = 0
 WHERE status IS NULL;
 
 ALTER TABLE products
-    ALTER COLUMN status SET DEFAULT 1,
+    ALTER COLUMN status SET DEFAULT 0,
     ALTER COLUMN status SET NOT NULL;
 
 ALTER TABLE products
     DROP CONSTRAINT IF EXISTS chk_products_status;
 
 ALTER TABLE products
-    ADD CONSTRAINT chk_products_status CHECK (status IN (1, 2));
+    ADD CONSTRAINT chk_products_status CHECK (status IN (0, 1));
 
 CREATE INDEX IF NOT EXISTS idx_products_status ON products(status);

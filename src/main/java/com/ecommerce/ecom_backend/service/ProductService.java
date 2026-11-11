@@ -117,6 +117,7 @@ public class ProductService {
                 product.getStatus(),
                 product.getCategoryEntity() != null ? product.getCategoryEntity().getId() : null,
                 product.getCategoryEntity() != null ? product.getCategoryEntity().getName() : null,
+                product.getCategory(),
                 imageUrls,
                 product.getCreatedAt(),
                 product.getUpdatedAt()

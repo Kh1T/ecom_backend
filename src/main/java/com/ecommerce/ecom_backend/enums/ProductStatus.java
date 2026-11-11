@@ -1,14 +1,12 @@
 package com.ecommerce.ecom_backend.enums;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
 import io.swagger.v3.oas.annotations.media.Schema;
 
-@Schema(type = "integer", allowableValues = {"1", "2"},
-        description = "Product status: 1 = ACTIVE, 2 = DELETED")
+@Schema(type = "integer", allowableValues = {"0", "1"},
+        description = "Product status: 0 = ACTIVE, 1 = DELETED")
 public enum ProductStatus {
     ACTIVE(0),
-    ARCHIVED(1);
+    DELETED(1);
 
     private final int value;
 
