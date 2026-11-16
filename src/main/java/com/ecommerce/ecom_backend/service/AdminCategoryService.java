@@ -3,13 +3,13 @@ package com.ecommerce.ecom_backend.service;
 import com.ecommerce.ecom_backend.dto.CategoryRequest;
 import com.ecommerce.ecom_backend.dto.CategoryResponse;
 import com.ecommerce.ecom_backend.entity.Category;
+import com.ecommerce.ecom_backend.exception.DuplicateResourceException;
+import com.ecommerce.ecom_backend.exception.ResourceNotFoundException;
 import com.ecommerce.ecom_backend.repository.CategoryRepository;
 import com.ecommerce.ecom_backend.repository.ProductRepository;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -40,7 +40,7 @@ public class AdminCategoryService {
     @Transactional
     public CategoryResponse createCategory(CategoryRequest request) {
         if (categoryRepository.findByName(request.getName()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Category already exists");
+            throw new DuplicateResourceException("Category already exists");
         }
 
         Category category = new Category();
@@ -57,7 +57,7 @@ public class AdminCategoryService {
 
         categoryRepository.findByName(request.getName()).ifPresent(existing -> {
             if (!existing.getId().equals(id)) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Category name already exists");
+                throw new DuplicateResourceException("Category name already exists");
             }
         });
 
@@ -77,8 +77,7 @@ public class AdminCategoryService {
 
     private Category findCategory(Long id) {
         return categoryRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
     }
 
     private CategoryResponse mapToResponse(Category category) {

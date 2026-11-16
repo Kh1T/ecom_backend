@@ -5,6 +5,10 @@ import com.ecommerce.ecom_backend.entity.PasswordResetToken;
 import com.ecommerce.ecom_backend.entity.RefreshToken;
 import com.ecommerce.ecom_backend.entity.User;
 import com.ecommerce.ecom_backend.enums.UserRole;
+import com.ecommerce.ecom_backend.exception.BusinessException;
+import com.ecommerce.ecom_backend.exception.DuplicateResourceException;
+import com.ecommerce.ecom_backend.exception.ErrorCode;
+import com.ecommerce.ecom_backend.exception.ResourceNotFoundException;
 import com.ecommerce.ecom_backend.repository.PasswordResetTokenRepository;
 import com.ecommerce.ecom_backend.repository.RefreshTokenRepository;
 import com.ecommerce.ecom_backend.repository.UserRepository;
@@ -46,7 +50,7 @@ public class AuthService {
     @Transactional
     public AuthResponse signUp(SignUpRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("Email already registered");
+            throw new DuplicateResourceException("Email already registered");
         }
 
         User user = new User();
@@ -64,10 +68,10 @@ public class AuthService {
     @Transactional
     public AuthResponse signIn(SignInRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_CREDENTIALS, "Invalid email or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new RuntimeException("Invalid email or password");
+            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS, "Invalid email or password");
         }
 
         return buildAuthResponse(user, "Signed in successfully");
@@ -78,18 +82,18 @@ public class AuthService {
         String tokenValue = request.getRefreshToken();
 
         if (!jwtUtil.isRefreshToken(tokenValue)) {
-            throw new RuntimeException("Invalid refresh token");
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, "Invalid refresh token");
         }
 
         RefreshToken refreshToken = refreshTokenRepository.findByToken(tokenValue)
-                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN, "Refresh token not found"));
 
         if (refreshToken.isRevoked()) {
-            throw new RuntimeException("Refresh token has been revoked");
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, "Refresh token has been revoked");
         }
 
         if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
-            throw new RuntimeException("Refresh token has expired");
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, "Refresh token has expired");
         }
 
         User user = refreshToken.getUser();
@@ -102,7 +106,7 @@ public class AuthService {
     @Transactional
     public void logout(RefreshTokenRequest request) {
         RefreshToken refreshToken = refreshTokenRepository.findByToken(request.getRefreshToken())
-                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN, "Refresh token not found"));
 
         refreshToken.setRevoked(true);
         refreshTokenRepository.save(refreshToken);
@@ -110,7 +114,7 @@ public class AuthService {
 
     public UserProfileResponse getCurrentUser(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         return new UserProfileResponse(
                 user.getId(),
@@ -124,7 +128,7 @@ public class AuthService {
     @Transactional
     public MessageResponse forgotPassword(ForgotPasswordRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         String token = UUID.randomUUID().toString();
 
@@ -140,14 +144,14 @@ public class AuthService {
     @Transactional
     public MessageResponse resetPassword(ResetPasswordRequest request) {
         PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(request.getToken())
-                .orElseThrow(() -> new RuntimeException("Invalid or expired reset token"));
+                .orElseThrow(() -> new BusinessException(ErrorCode.BUSINESS_RULE_VIOLATION, "Invalid or expired reset token"));
 
         if (resetToken.isUsed()) {
-            throw new RuntimeException("Reset token has already been used");
+            throw new BusinessException(ErrorCode.BUSINESS_RULE_VIOLATION, "Reset token has already been used");
         }
 
         if (resetToken.getExpiryDate().isBefore(Instant.now())) {
-            throw new RuntimeException("Reset token has expired");
+            throw new BusinessException(ErrorCode.BUSINESS_RULE_VIOLATION, "Reset token has expired");
         }
 
         User user = resetToken.getUser();

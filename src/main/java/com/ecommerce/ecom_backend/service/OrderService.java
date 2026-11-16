@@ -8,6 +8,9 @@ import com.ecommerce.ecom_backend.entity.Shipment;
 import com.ecommerce.ecom_backend.entity.User;
 import com.ecommerce.ecom_backend.enums.OrderStatus;
 import com.ecommerce.ecom_backend.enums.ShipmentStatus;
+import com.ecommerce.ecom_backend.exception.BusinessException;
+import com.ecommerce.ecom_backend.exception.ErrorCode;
+import com.ecommerce.ecom_backend.exception.ResourceNotFoundException;
 import com.ecommerce.ecom_backend.repository.OrderItemRepository;
 import com.ecommerce.ecom_backend.repository.OrderRepository;
 import com.ecommerce.ecom_backend.repository.ProductRepository;
@@ -47,7 +50,7 @@ public class OrderService {
     @Transactional
     public OrderResponse createOrder(String email, CreateOrderRequest request) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Map<Long, Integer> productQuantities = request.getItems().stream()
                 .collect(Collectors.toMap(
@@ -62,7 +65,7 @@ public class OrderService {
                 .collect(Collectors.toMap(Product::getId, p -> p));
 
         if (products.size() != productQuantities.size()) {
-            throw new RuntimeException("One or more products not found");
+            throw new ResourceNotFoundException("One or more products not found");
         }
 
         Order order = new Order();
@@ -78,7 +81,8 @@ public class OrderService {
             Integer quantity = entry.getValue();
 
             if (product.getStockQuantity() < quantity) {
-                throw new RuntimeException("Insufficient stock for product: " + product.getName());
+                throw new BusinessException(ErrorCode.BUSINESS_RULE_VIOLATION,
+                        "Insufficient stock for product: " + product.getName());
             }
 
             product.setStockQuantity(product.getStockQuantity() - quantity);
@@ -112,7 +116,7 @@ public class OrderService {
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrderHistory(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         return orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId()).stream()
                 .map(this::mapToOrderResponse)
@@ -122,10 +126,10 @@ public class OrderService {
     @Transactional(readOnly = true)
     public OrderResponse getOrderDetails(String email, Long orderId) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Order order = orderRepository.findByIdAndUserId(orderId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
         return mapToOrderResponse(order);
     }
@@ -133,13 +137,13 @@ public class OrderService {
     @Transactional
     public MessageResponse cancelOrder(String email, Long orderId) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Order order = orderRepository.findByIdAndUserId(orderId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
         if (order.getStatus() != OrderStatus.PENDING) {
-            throw new RuntimeException("Only pending orders can be cancelled");
+            throw new BusinessException(ErrorCode.BUSINESS_RULE_VIOLATION, "Only pending orders can be cancelled");
         }
 
         for (OrderItem item : order.getItems()) {
@@ -162,13 +166,13 @@ public class OrderService {
     @Transactional(readOnly = true)
     public ShipmentResponse getTracking(String email, Long orderId) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Order order = orderRepository.findByIdAndUserId(orderId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
         Shipment shipment = shipmentRepository.findByOrderId(order.getId())
-                .orElseThrow(() -> new RuntimeException("Shipment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Shipment not found"));
 
         return mapToShipmentResponse(shipment);
     }
@@ -176,20 +180,21 @@ public class OrderService {
     @Transactional
     public MessageResponse confirmDelivery(String email, Long orderId) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Order order = orderRepository.findByIdAndUserId(orderId, user.getId())
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
         if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.SHIPPED) {
-            throw new RuntimeException("Only pending or shipped orders can be confirmed as delivered");
+            throw new BusinessException(ErrorCode.BUSINESS_RULE_VIOLATION,
+                    "Only pending or shipped orders can be confirmed as delivered");
         }
 
         order.setStatus(OrderStatus.DELIVERED);
         orderRepository.save(order);
 
         Shipment shipment = shipmentRepository.findByOrderId(order.getId())
-                .orElseThrow(() -> new RuntimeException("Shipment not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Shipment not found"));
         shipment.setStatus(ShipmentStatus.DELIVERED);
         shipmentRepository.save(shipment);
 

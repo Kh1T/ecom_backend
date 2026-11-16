@@ -1,5 +1,6 @@
 package com.ecommerce.ecom_backend.controller;
 
+import com.ecommerce.ecom_backend.api.ApiVersion;
 import com.ecommerce.ecom_backend.dto.AuthResponse;
 import com.ecommerce.ecom_backend.dto.ForgotPasswordRequest;
 import com.ecommerce.ecom_backend.dto.MessageResponse;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping(ApiVersion.V1_AUTH)
 @Tag(name = "Auth API", description = "Authentication, tokens and user profile")
 public class AuthController {
 

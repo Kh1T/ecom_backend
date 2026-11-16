@@ -1,5 +1,6 @@
 package com.ecommerce.ecom_backend.controller;
 
+import com.ecommerce.ecom_backend.api.ApiVersion;
 import com.ecommerce.ecom_backend.dto.BrandRequest;
 import com.ecommerce.ecom_backend.dto.BrandResponse;
 import com.ecommerce.ecom_backend.service.AdminBrandService;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/admin/brands")
+@RequestMapping(ApiVersion.V1_ADMIN + "/brands")
 @Tag(name = "Admin Brand API", description = "Manage product brands")
 public class AdminBrandController {
 

@@ -1,5 +1,6 @@
 package com.ecommerce.ecom_backend.controller;
 
+import com.ecommerce.ecom_backend.api.ApiVersion;
 import com.ecommerce.ecom_backend.dto.ProductCreateRequest;
 import com.ecommerce.ecom_backend.dto.ProductResponse;
 import com.ecommerce.ecom_backend.service.ProductService;
@@ -25,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/products")
+@RequestMapping(ApiVersion.V1_PRODUCTS)
 @Tag(name = "Product API", description = "Browse and manage products")
 public class ProductController {
 

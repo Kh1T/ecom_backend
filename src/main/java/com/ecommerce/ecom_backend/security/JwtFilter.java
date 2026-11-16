@@ -1,5 +1,6 @@
 package com.ecommerce.ecom_backend.security;
 
+import com.ecommerce.ecom_backend.api.ApiVersion;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -8,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -27,8 +29,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(@Nonnull HttpServletRequest request) {
+        String path = request.getServletPath();
         return "GET".equalsIgnoreCase(request.getMethod())
-                && request.getServletPath().startsWith("/api/v1/products");
+                && (path.equals(ApiVersion.V1_PRODUCTS)
+                || path.startsWith(ApiVersion.V1_PRODUCTS + "/"));
     }
 
     @Override
@@ -53,7 +57,13 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+            UserDetails userDetails;
+            try {
+                userDetails = this.userDetailsService.loadUserByUsername(username);
+            } catch (UsernameNotFoundException e) {
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             if (jwtUtil.isTokenValid(token, userDetails) && jwtUtil.isAccessToken(token)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

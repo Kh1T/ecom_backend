@@ -1,6 +1,9 @@
 package com.ecommerce.ecom_backend.config;
 
+import com.ecommerce.ecom_backend.api.ApiVersion;
 import com.ecommerce.ecom_backend.security.JwtFilter;
+import com.ecommerce.ecom_backend.security.RestAccessDeniedHandler;
+import com.ecommerce.ecom_backend.security.RestAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -24,9 +27,15 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final RestAuthenticationEntryPoint restAuthenticationEntryPoint;
+    private final RestAccessDeniedHandler restAccessDeniedHandler;
 
-    public SecurityConfig(JwtFilter jwtFilter) {
+    public SecurityConfig(JwtFilter jwtFilter,
+                          RestAuthenticationEntryPoint restAuthenticationEntryPoint,
+                          RestAccessDeniedHandler restAccessDeniedHandler) {
         this.jwtFilter = jwtFilter;
+        this.restAuthenticationEntryPoint = restAuthenticationEntryPoint;
+        this.restAccessDeniedHandler = restAccessDeniedHandler;
     }
 
     @Bean
@@ -58,11 +67,11 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/error").permitAll()
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
-                .requestMatchers("/api/v1/products/**").hasRole("ADMIN")
-                .requestMatchers("/api/v1/admin/**").hasAnyRole("ADMIN", "CATALOG_MANAGER")
-                .requestMatchers("/api/v1/orders/**").hasAnyRole("CUSTOMER", "ADMIN")
+                .requestMatchers(ApiVersion.V1_AUTH + "/**").permitAll()
+                .requestMatchers(HttpMethod.GET, ApiVersion.V1_PRODUCTS + "/**").permitAll()
+                .requestMatchers(ApiVersion.V1_PRODUCTS + "/**").hasRole("ADMIN")
+                .requestMatchers(ApiVersion.V1_ADMIN + "/**").hasAnyRole("ADMIN", "CATALOG_MANAGER")
+                .requestMatchers(ApiVersion.V1_ORDERS + "/**").hasAnyRole("CUSTOMER", "ADMIN")
                 .requestMatchers(
                     "/swagger-ui.html",
                     "/swagger-ui/**",
@@ -74,6 +83,9 @@ public class SecurityConfig {
             )
             .httpBasic(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
+            .exceptionHandling(exception -> exception
+                .authenticationEntryPoint(restAuthenticationEntryPoint)
+                .accessDeniedHandler(restAccessDeniedHandler))
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -6,6 +6,8 @@ import com.ecommerce.ecom_backend.entity.Category;
 import com.ecommerce.ecom_backend.entity.Product;
 import com.ecommerce.ecom_backend.entity.ProductImage;
 import com.ecommerce.ecom_backend.enums.ProductStatus;
+import com.ecommerce.ecom_backend.exception.DuplicateResourceException;
+import com.ecommerce.ecom_backend.exception.ResourceNotFoundException;
 import com.ecommerce.ecom_backend.repository.CategoryRepository;
 import com.ecommerce.ecom_backend.repository.ProductRepository;
 import org.springframework.data.domain.Page;
@@ -16,8 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class ProductService {
@@ -54,7 +54,7 @@ public class ProductService {
     public ProductResponse createProduct(ProductCreateRequest request) {
         if (request.getSku() != null && !request.getSku().isBlank()
                 && productRepository.findBySku(request.getSku()).isPresent()) {
-            throw new RuntimeException("SKU already exists");
+            throw new DuplicateResourceException("SKU already exists");
         }
 
         Product product = new Product();
@@ -77,7 +77,7 @@ public class ProductService {
         if (request.getSku() != null && !request.getSku().isBlank()) {
             productRepository.findBySku(request.getSku()).ifPresent(existing -> {
                 if (!existing.getId().equals(id)) {
-                    throw new RuntimeException("SKU already exists");
+                    throw new DuplicateResourceException("SKU already exists");
                 }
             });
             product.setSku(request.getSku());
@@ -126,8 +126,7 @@ public class ProductService {
 
     private Product findActiveProduct(Long id) {
         return productRepository.findByIdAndStatus(id, ProductStatus.ACTIVE)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
     }
 
     private void setCategory(Product product, Long categoryId) {
@@ -137,7 +136,7 @@ public class ProductService {
         }
 
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
         product.setCategoryEntity(category);
     }
 }

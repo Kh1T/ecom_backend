@@ -3,6 +3,7 @@ package com.ecommerce.ecom_backend.service;
 import com.ecommerce.ecom_backend.dto.BrandRequest;
 import com.ecommerce.ecom_backend.dto.BrandResponse;
 import com.ecommerce.ecom_backend.entity.Brand;
+import com.ecommerce.ecom_backend.exception.DuplicateResourceException;
 import com.ecommerce.ecom_backend.repository.BrandRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,7 +20,7 @@ public class AdminBrandService {
     @Transactional
     public BrandResponse createBrand(BrandRequest request) {
         if (brandRepository.findByName(request.getName()).isPresent()) {
-            throw new RuntimeException("Brand already exists");
+            throw new DuplicateResourceException("Brand already exists");
         }
 
         Brand brand = new Brand();

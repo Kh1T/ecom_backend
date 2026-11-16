@@ -3,6 +3,10 @@ package com.ecommerce.ecom_backend.service;
 import com.ecommerce.ecom_backend.dto.*;
 import com.ecommerce.ecom_backend.entity.*;
 import com.ecommerce.ecom_backend.enums.ProductStatus;
+import com.ecommerce.ecom_backend.exception.BusinessException;
+import com.ecommerce.ecom_backend.exception.DuplicateResourceException;
+import com.ecommerce.ecom_backend.exception.ErrorCode;
+import com.ecommerce.ecom_backend.exception.ResourceNotFoundException;
 import com.ecommerce.ecom_backend.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,7 +62,7 @@ public class AdminProductService {
     @Transactional
     public AdminProductResponse updateProduct(Long id, AdminProductUpdateRequest request) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         product.setName(request.getName());
         product.setDescription(request.getDescription());
@@ -80,7 +84,7 @@ public class AdminProductService {
     @Transactional
     public AdminProductResponse updateProductStatus(Long id, ProductStatus status) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
         product.setStatus(status);
         Product updatedProduct = productRepository.save(product);
         return mapToAdminProductResponse(updatedProduct);
@@ -89,7 +93,7 @@ public class AdminProductService {
     @Transactional
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
         product.setStatus(ProductStatus.DELETED);
         productRepository.save(product);
     }
@@ -97,7 +101,7 @@ public class AdminProductService {
     @Transactional
     public ProductImageResponse addProductImage(Long productId, MultipartFile file, Integer sortOrder) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         String imageUrl = cloudinaryService.uploadImage(file, "products/" + productId);
 
@@ -113,10 +117,10 @@ public class AdminProductService {
     @Transactional
     public void deleteProductImage(Long productId, Long imageId) {
         ProductImage image = productImageRepository.findById(imageId)
-                .orElseThrow(() -> new RuntimeException("Image not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Image not found"));
 
         if (!image.getProduct().getId().equals(productId)) {
-            throw new RuntimeException("Image does not belong to this product");
+            throw new BusinessException(ErrorCode.BUSINESS_RULE_VIOLATION, "Image does not belong to this product");
         }
 
         productImageRepository.delete(image);
@@ -125,7 +129,7 @@ public class AdminProductService {
     @Transactional
     public ProductVariantResponse createProductVariant(Long productId, ProductVariantRequest request) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         if (request.getSku() != null && !request.getSku().isBlank()) {
             validateVariantSku(request.getSku(), null);
@@ -145,10 +149,10 @@ public class AdminProductService {
     @Transactional
     public ProductVariantResponse updateProductVariant(Long productId, Long variantId, ProductVariantUpdateRequest request) {
         ProductVariant variant = productVariantRepository.findById(variantId)
-                .orElseThrow(() -> new RuntimeException("Variant not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Variant not found"));
 
         if (!variant.getProduct().getId().equals(productId)) {
-            throw new RuntimeException("Variant does not belong to this product");
+            throw new BusinessException(ErrorCode.BUSINESS_RULE_VIOLATION, "Variant does not belong to this product");
         }
 
         if (request.getSku() != null && !request.getSku().isBlank()) {
@@ -167,14 +171,14 @@ public class AdminProductService {
     @Transactional(readOnly = true)
     public AdminProductResponse getProduct(Long id) {
         Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
         return mapToAdminProductResponse(product);
     }
 
     private void setCategoryAndBrand(Product product, Long categoryId, Long brandId) {
         if (categoryId != null) {
             Category category = categoryRepository.findById(categoryId)
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
             product.setCategoryEntity(category);
         } else {
             product.setCategoryEntity(null);
@@ -182,7 +186,7 @@ public class AdminProductService {
 
         if (brandId != null) {
             Brand brand = brandRepository.findById(brandId)
-                    .orElseThrow(() -> new RuntimeException("Brand not found"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
             product.setBrand(brand);
         }
     }
@@ -190,7 +194,7 @@ public class AdminProductService {
     private void validateSku(String sku, Long excludeProductId) {
         productRepository.findBySku(sku).ifPresent(existing -> {
             if (excludeProductId == null || !existing.getId().equals(excludeProductId)) {
-                throw new RuntimeException("SKU already exists");
+                throw new DuplicateResourceException("SKU already exists");
             }
         });
     }
@@ -198,7 +202,7 @@ public class AdminProductService {
     private void validateVariantSku(String sku, Long excludeVariantId) {
         productVariantRepository.findBySku(sku).ifPresent(existing -> {
             if (excludeVariantId == null || !existing.getId().equals(excludeVariantId)) {
-                throw new RuntimeException("Variant SKU already exists");
+                throw new DuplicateResourceException("Variant SKU already exists");
             }
         });
     }

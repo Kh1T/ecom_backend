@@ -1,5 +1,6 @@
 package com.ecommerce.ecom_backend.controller;
 
+import com.ecommerce.ecom_backend.api.ApiVersion;
 import com.ecommerce.ecom_backend.dto.CreateOrderRequest;
 import com.ecommerce.ecom_backend.dto.MessageResponse;
 import com.ecommerce.ecom_backend.dto.OrderResponse;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/orders")
+@RequestMapping(ApiVersion.V1_ORDERS)
 @Tag(name = "Order API", description = "Create, view and track customer orders")
 public class OrderController {
 

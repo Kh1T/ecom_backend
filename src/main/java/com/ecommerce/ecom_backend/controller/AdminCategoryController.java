@@ -1,5 +1,6 @@
 package com.ecommerce.ecom_backend.controller;
 
+import com.ecommerce.ecom_backend.api.ApiVersion;
 import com.ecommerce.ecom_backend.dto.CategoryRequest;
 import com.ecommerce.ecom_backend.dto.CategoryResponse;
 import com.ecommerce.ecom_backend.service.AdminCategoryService;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/admin/categories")
+@RequestMapping(ApiVersion.V1_ADMIN + "/categories")
 @Tag(name = "Admin Category API", description = "Create, read, update and delete product categories")
 @SecurityRequirement(name = "bearerAuth")
 public class AdminCategoryController {
